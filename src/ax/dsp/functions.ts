@@ -558,6 +558,18 @@ export const processFunctions = async ({
   return functionsExecuted;
 };
 
+// Native tools executed by AI providers (not by the application)
+// These should be included in functionCalls for observability but not executed
+const NATIVE_TOOL_NAMES = new Set([
+  'web_search',
+  'file_search',
+  'code_interpreter',
+  'computer_use',
+  'image_generation',
+  'local_shell',
+  'mcp',
+]);
+
 export function parseFunctionCalls(
   ai: Readonly<AxAIService>,
   functionCalls: Readonly<AxChatResponseResult['functionCalls']>,
@@ -571,11 +583,19 @@ export function parseFunctionCalls(
     throw new Error('Functions are not supported by the AI service');
   }
 
-  const funcs: AxChatResponseFunctionCall[] = functionCalls.map((f) => ({
-    id: f.id,
-    name: f.function.name,
-    args: f.function.params as string,
-  }));
+  // Filter out native tools - they're executed by the AI provider, not the application
+  const funcs: AxChatResponseFunctionCall[] = functionCalls
+    .filter((f) => !NATIVE_TOOL_NAMES.has(f.function.name))
+    .map((f) => ({
+      id: f.id,
+      name: f.function.name,
+      args: f.function.params as string,
+    }));
+
+  // Return undefined if all calls were native tools
+  if (funcs.length === 0) {
+    return undefined;
+  }
 
   // for (const [i, f] of funcs.entries()) {
   //   values['functionName' + i] = f.name;
