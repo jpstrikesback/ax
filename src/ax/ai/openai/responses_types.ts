@@ -150,12 +150,33 @@ export interface AxAIOpenAIResponsesDefineFunctionTool {
   readonly strict?: boolean; // Default true
 }
 
-// Add other tool definitions (FileSearch, WebSearch, etc.)
-// export interface AxAIOpenAIResponsesDefineFileSearchTool { type: 'file_search'; vector_store_ids: string[]; ... }
-// export interface AxAIOpenAIResponsesDefineWebSearchTool { type: 'web_search_preview'; ... }
+// Generic native tool definition for extensibility
+// This allows any native tool type without requiring code changes when OpenAI adds new tools
+export interface AxAIOpenAIResponsesDefineNativeTool<
+  TType extends string = string,
+> {
+  readonly type: TType;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly [key: string]: any; // Allow any additional config properties
+}
 
+// Specific native tool definitions for better type hints (optional, for known tools)
+export type AxAIOpenAIResponsesDefineWebSearchTool =
+  AxAIOpenAIResponsesDefineNativeTool<'web_search_preview'>;
+
+export type AxAIOpenAIResponsesDefineFileSearchTool =
+  AxAIOpenAIResponsesDefineNativeTool<'file_search'>;
+
+export type AxAIOpenAIResponsesDefineCodeInterpreterTool =
+  AxAIOpenAIResponsesDefineNativeTool<'code_interpreter'>;
+
+export type AxAIOpenAIResponsesDefineComputerTool =
+  AxAIOpenAIResponsesDefineNativeTool<'computer'>;
+
+// Union of all tool definitions - includes function tools and any native tool
 export type AxAIOpenAIResponsesToolDefinition =
-  AxAIOpenAIResponsesDefineFunctionTool; // | AxAIOpenAIResponsesDefineFileSearchTool | ...
+  | AxAIOpenAIResponsesDefineFunctionTool
+  | AxAIOpenAIResponsesDefineNativeTool; // Generic catch-all for any native tool
 
 // Tool Choice
 export type AxAIOpenAIResponsesToolChoice =
@@ -163,9 +184,7 @@ export type AxAIOpenAIResponsesToolChoice =
   | 'auto'
   | 'required'
   | { readonly type: 'function'; readonly name: string }
-  | { readonly type: 'file_search' }; // And other hosted tools
-// | { type: 'web_search_preview' }
-// | { type: 'code_interpreter' }
+  | { readonly type: string }; // Generic support for any native tool type
 
 // Main Request for /v1/responses
 export interface AxAIOpenAIResponsesRequest<TModel = AxAIOpenAIResponsesModel> {
@@ -759,6 +778,9 @@ export type AxAIOpenAIResponsesConfig<TModel, TEmbedModel> = Omit<
   seed?: number;
   responseFormat?: 'text' | 'json_object' | 'json_schema';
   serviceTier?: 'auto' | 'default' | 'flex';
+  // Native tools that should be available to the model (web_search, file_search, etc.)
+  // This is generic and will work with any future native tools OpenAI adds
+  nativeTools?: ReadonlyArray<AxAIOpenAIResponsesDefineNativeTool>;
 };
 
 // ToolCall response types

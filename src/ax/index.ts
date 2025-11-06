@@ -201,7 +201,12 @@ import {
   type AxAIOpenAIResponsesConfig,
   type AxAIOpenAIResponsesContentPartAddedEvent,
   type AxAIOpenAIResponsesContentPartDoneEvent,
+  type AxAIOpenAIResponsesDefineCodeInterpreterTool,
+  type AxAIOpenAIResponsesDefineComputerTool,
+  type AxAIOpenAIResponsesDefineFileSearchTool,
   type AxAIOpenAIResponsesDefineFunctionTool,
+  type AxAIOpenAIResponsesDefineNativeTool,
+  type AxAIOpenAIResponsesDefineWebSearchTool,
   type AxAIOpenAIResponsesErrorEvent,
   type AxAIOpenAIResponsesFileSearchCallCompletedEvent,
   type AxAIOpenAIResponsesFileSearchCallInProgressEvent,
@@ -991,7 +996,12 @@ export type { AxAIOpenAIResponsesComputerToolCall };
 export type { AxAIOpenAIResponsesConfig };
 export type { AxAIOpenAIResponsesContentPartAddedEvent };
 export type { AxAIOpenAIResponsesContentPartDoneEvent };
+export type { AxAIOpenAIResponsesDefineCodeInterpreterTool };
+export type { AxAIOpenAIResponsesDefineComputerTool };
+export type { AxAIOpenAIResponsesDefineFileSearchTool };
 export type { AxAIOpenAIResponsesDefineFunctionTool };
+export type { AxAIOpenAIResponsesDefineNativeTool };
+export type { AxAIOpenAIResponsesDefineWebSearchTool };
 export type { AxAIOpenAIResponsesErrorEvent };
 export type { AxAIOpenAIResponsesFileSearchCallCompletedEvent };
 export type { AxAIOpenAIResponsesFileSearchCallInProgressEvent };

@@ -310,17 +310,25 @@ export class AxAIOpenAIResponsesImpl<
     const finalInstructions =
       instructionsFromPrompt ?? this.config.systemPrompt ?? null;
 
+    // Build function tools from request
+    const functionTools:
+      | ReadonlyArray<AxAIOpenAIResponsesDefineFunctionTool>
+      | undefined = req.functions?.map(
+      (
+        v: Readonly<RequestFunctionDefinition>
+      ): AxAIOpenAIResponsesDefineFunctionTool => ({
+        type: 'function' as const,
+        name: v.name,
+        description: v.description,
+        parameters: v.parameters ?? {},
+      })
+    );
+
+    // Merge function tools with native tools from config
     const tools: ReadonlyArray<AxAIOpenAIResponsesToolDefinition> | undefined =
-      req.functions?.map(
-        (
-          v: Readonly<RequestFunctionDefinition>
-        ): AxAIOpenAIResponsesDefineFunctionTool => ({
-          type: 'function' as const,
-          name: v.name,
-          description: v.description,
-          parameters: v.parameters ?? {},
-        })
-      );
+      functionTools || this.config.nativeTools
+        ? [...(functionTools ?? []), ...(this.config.nativeTools ?? [])]
+        : undefined;
 
     // Set include field based on showThoughts option, but override if thinkingTokenBudget is 'none'
     const includeFields: // | 'file_search_call.results'
