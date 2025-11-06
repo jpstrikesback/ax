@@ -16,17 +16,11 @@ import type {
   AxTokenUsage,
 } from '../types.js';
 import type {
-  AxAIOpenAIResponsesCodeInterpreterToolCall,
-  AxAIOpenAIResponsesComputerToolCall,
   AxAIOpenAIResponsesConfig,
   AxAIOpenAIResponsesDefineFunctionTool,
-  AxAIOpenAIResponsesFileSearchToolCall,
-  AxAIOpenAIResponsesImageGenerationToolCall,
   AxAIOpenAIResponsesInputContentPart,
   AxAIOpenAIResponsesInputItem,
   AxAIOpenAIResponsesInputMessageItem,
-  AxAIOpenAIResponsesLocalShellToolCall,
-  AxAIOpenAIResponsesMCPToolCall,
   AxAIOpenAIResponsesOutputRefusalContentPart,
   AxAIOpenAIResponsesOutputTextContentPart,
   AxAIOpenAIResponsesRequest,
@@ -34,7 +28,6 @@ import type {
   AxAIOpenAIResponsesResponseDelta,
   AxAIOpenAIResponsesStreamEvent,
   AxAIOpenAIResponsesToolDefinition,
-  AxAIOpenAIResponsesWebSearchToolCall,
   Mutable,
   RequestFunctionDefinition,
   ResponsesReqUpdater,
@@ -567,122 +560,36 @@ export class AxAIOpenAIResponsesImpl<
           break;
 
         case 'file_search_call':
+          // Native tool executed by OpenAI - don't treat as function call
+          // The results are used internally by the model to generate the response
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'file_search',
-                params: {
-                  queries: item.queries,
-                  results: item.results,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
+          // Store as metadata/citations if needed, but don't trigger function execution
           break;
         case 'web_search_call':
+          // Native tool executed by OpenAI - don't treat as function call
+          // The search is performed server-side and results inform the model's response
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'web_search',
-                params: {
-                  queries: item.queries,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
+          // Store as metadata/citations if needed, but don't trigger function execution
           break;
         case 'computer_call':
+          // Native tool executed by OpenAI - don't treat as function call
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'computer_use',
-                params: {
-                  action: item.action,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
           break;
         case 'code_interpreter_call':
+          // Native tool executed by OpenAI - don't treat as function call
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'code_interpreter',
-                params: {
-                  code: item.code,
-                  results: item.results,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
           break;
         case 'image_generation_call':
+          // Native tool executed by OpenAI - don't treat as function call
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'image_generation',
-                params: {
-                  result: item.result,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
           break;
         case 'local_shell_call':
+          // Native tool executed by OpenAI - don't treat as function call
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'local_shell',
-                params: {
-                  action: item.action,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
           break;
         case 'mcp_call':
+          // Native tool executed by OpenAI - don't treat as function call
           currentResult.id = item.id;
-          currentResult.functionCalls = [
-            {
-              id: item.id,
-              type: 'function' as const,
-              function: {
-                name: 'mcp',
-                params: {
-                  name: item.name,
-                  args: item.args,
-                  serverLabel: item.server_label,
-                  output: item.output,
-                  error: item.error,
-                },
-              },
-            },
-          ];
-          currentResult.finishReason = 'function_call';
           break;
         case 'function_call':
           currentResult.id = item.id;
@@ -760,148 +667,32 @@ export class AxAIOpenAIResponsesImpl<
             ];
             break;
           case 'file_search_call':
-            {
-              const fileSearchItem =
-                event.item as AxAIOpenAIResponsesFileSearchToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: fileSearchItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'file_search',
-                    params: {
-                      queries: fileSearchItem.queries || [],
-                      results: fileSearchItem.results?.map((r) => ({
-                        fileId: r.file_id,
-                        filename: r.filename,
-                        score: r.score,
-                        text: r.text,
-                        attributes: r.attributes,
-                      })),
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'web_search_call':
-            {
-              const webSearchItem =
-                event.item as AxAIOpenAIResponsesWebSearchToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: webSearchItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'web_search',
-                    params: {
-                      queries: webSearchItem.queries || [],
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'computer_call':
-            {
-              const computerItem =
-                event.item as AxAIOpenAIResponsesComputerToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: computerItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'computer_use',
-                    params: {
-                      action: computerItem.action || {},
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'code_interpreter_call':
-            {
-              const codeItem =
-                event.item as AxAIOpenAIResponsesCodeInterpreterToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: codeItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'code_interpreter',
-                    params: {
-                      code: codeItem.code || '',
-                      results: codeItem.results,
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'image_generation_call':
-            {
-              const imageItem =
-                event.item as AxAIOpenAIResponsesImageGenerationToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: imageItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'image_generation',
-                    params: {
-                      result: imageItem.result,
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'local_shell_call':
-            {
-              const shellItem =
-                event.item as AxAIOpenAIResponsesLocalShellToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: shellItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'local_shell',
-                    params: {
-                      action: shellItem.action || {},
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           case 'mcp_call':
-            {
-              const mcpItem = event.item as AxAIOpenAIResponsesMCPToolCall;
-              baseResult.id = event.item.id;
-              baseResult.functionCalls = [
-                {
-                  id: mcpItem.id,
-                  type: 'function' as const,
-                  function: {
-                    name: 'mcp',
-                    params: {
-                      name: mcpItem.name || '',
-                      args: mcpItem.args || '',
-                      serverLabel: mcpItem.server_label || '',
-                      output: mcpItem.output,
-                      error: mcpItem.error,
-                    },
-                  },
-                },
-              ];
-            }
+            // Native tool executed by OpenAI - don't treat as function call
+            baseResult.id = event.item.id;
             break;
           // case 'reasoning':
           //     {
@@ -975,87 +766,51 @@ export class AxAIOpenAIResponsesImpl<
       //     baseResult.thought = event.text
       //     break
 
-      // File search tool events
+      // File search tool events - native tools executed by OpenAI
       case 'response.file_search_call.in_progress':
       case 'response.file_search_call.searching':
-        baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
-        break;
-
       case 'response.file_search_call.completed':
         baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         break;
 
-      // Web search tool events
+      // Web search tool events - native tools executed by OpenAI
       case 'response.web_search_call.in_progress':
       case 'response.web_search_call.searching':
-        baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
-        break;
-
       case 'response.web_search_call.completed':
         baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         break;
 
-      // Image generation tool events
+      // Image generation tool events - native tools executed by OpenAI
       case 'response.image_generation_call.in_progress':
       case 'response.image_generation_call.generating':
-        baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
-        break;
-
       case 'response.image_generation_call.completed':
-        baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
-        break;
-
       case 'response.image_generation_call.partial_image':
         baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         // Could potentially add partial image data to content or a special field
         break;
 
-      // MCP tool events
+      // MCP tool events - native tools executed by OpenAI
       case 'response.mcp_call.in_progress':
         baseResult.id = event.item_id;
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         break;
 
       case 'response.mcp_call.arguments.delta':
-        baseResult.id = event.item_id;
-        baseResult.functionCalls = [
-          {
-            id: event.item_id,
-            type: 'function' as const,
-            function: {
-              name: '',
-              params: event.delta,
-            },
-          },
-        ];
-        break;
-
       case 'response.mcp_call.arguments.done':
+        // Native MCP tool - don't treat as function call
         baseResult.id = event.item_id;
-        baseResult.functionCalls = [
-          {
-            id: event.item_id,
-            type: 'function' as const,
-            function: {
-              name: '',
-              params: event.arguments,
-            },
-          },
-        ];
+        // Don't set finishReason - these are informational only
         break;
 
       case 'response.mcp_call.completed':
       case 'response.mcp_call.failed':
-        // These events don't have item_id, use a generic ID
+        // Native MCP tool - don't treat as function call
+        // These events don't have item_id
         baseResult.id = 'mcp_call_event';
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         break;
 
       case 'response.mcp_list_tools.in_progress':
@@ -1063,7 +818,7 @@ export class AxAIOpenAIResponsesImpl<
       case 'response.mcp_list_tools.failed':
         // MCP list tools events don't have item_id
         baseResult.id = 'mcp_list_tools_event';
-        baseResult.finishReason = 'function_call';
+        // Don't set finishReason - these are informational only
         break;
 
       case 'response.output_item.done':
@@ -1082,6 +837,10 @@ export class AxAIOpenAIResponsesImpl<
             }
             break;
           case 'function_call':
+            // User-defined function calls completed - requires execution
+            baseResult.id = event.item.id;
+            baseResult.finishReason = 'function_call';
+            break;
           case 'file_search_call':
           case 'web_search_call':
           case 'computer_call':
@@ -1089,9 +848,9 @@ export class AxAIOpenAIResponsesImpl<
           case 'image_generation_call':
           case 'local_shell_call':
           case 'mcp_call':
-            // Tool calls completed - finishReason indicates function execution needed
+            // Native tools completed - already executed by OpenAI, no action needed
             baseResult.id = event.item.id;
-            baseResult.finishReason = 'function_call';
+            // Don't set finishReason to 'function_call' for native tools
             break;
           // case 'reasoning':
           //     // Reasoning completed
