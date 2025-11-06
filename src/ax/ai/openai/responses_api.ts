@@ -1055,15 +1055,155 @@ export class AxAIOpenAIResponsesImpl<
             baseResult.finishReason = 'function_call';
             break;
           case 'file_search_call':
+            {
+              // Native tool completed - capture final queries/results
+              const fileSearchItem =
+                event.item as AxAIOpenAIResponsesFileSearchToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: fileSearchItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'file_search',
+                    params: {
+                      queries: fileSearchItem.queries || [],
+                      results: fileSearchItem.results?.map((r) => ({
+                        fileId: r.file_id,
+                        filename: r.filename,
+                        score: r.score,
+                        text: r.text,
+                        attributes: r.attributes,
+                      })),
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'web_search_call':
+            {
+              // Native tool completed - capture final queries
+              const webSearchItem =
+                event.item as AxAIOpenAIResponsesWebSearchToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: webSearchItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'web_search',
+                    params: {
+                      queries: webSearchItem.queries || [],
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'computer_call':
+            {
+              // Native tool completed - capture final action
+              const computerItem =
+                event.item as AxAIOpenAIResponsesComputerToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: computerItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'computer_use',
+                    params: {
+                      action: computerItem.action || {},
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'code_interpreter_call':
+            {
+              // Native tool completed - capture final code/results
+              const codeItem =
+                event.item as AxAIOpenAIResponsesCodeInterpreterToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: codeItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'code_interpreter',
+                    params: {
+                      code: codeItem.code || '',
+                      results: codeItem.results,
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'image_generation_call':
+            {
+              // Native tool completed - capture final result
+              const imageItem =
+                event.item as AxAIOpenAIResponsesImageGenerationToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: imageItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'image_generation',
+                    params: {
+                      result: imageItem.result,
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'local_shell_call':
+            {
+              // Native tool completed - capture final action
+              const shellItem =
+                event.item as AxAIOpenAIResponsesLocalShellToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: shellItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'local_shell',
+                    params: {
+                      action: shellItem.action || {},
+                    },
+                  },
+                },
+              ];
+            }
+            break;
           case 'mcp_call':
-            // Native tools completed - already executed by OpenAI
-            // functionCalls populated for observability but filtered before execution
-            baseResult.id = event.item.id;
+            {
+              // Native tool completed - capture final params/output
+              const mcpItem = event.item as AxAIOpenAIResponsesMCPToolCall;
+              baseResult.id = event.item.id;
+              baseResult.functionCalls = [
+                {
+                  id: mcpItem.id,
+                  type: 'function' as const,
+                  function: {
+                    name: 'mcp',
+                    params: {
+                      name: mcpItem.name || '',
+                      args: mcpItem.args || '',
+                      serverLabel: mcpItem.server_label || '',
+                      output: mcpItem.output,
+                      error: mcpItem.error,
+                    },
+                  },
+                },
+              ];
+            }
             break;
           // case 'reasoning':
           //     // Reasoning completed
