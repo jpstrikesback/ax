@@ -201,11 +201,28 @@ async function* ProcessStreamingResponse<OUT extends AxGenOut>({
 }: ProcessStreamingResponseArgs2): AsyncGenDeltaOut<OUT> {
   if (result.functionCalls && result.functionCalls.length > 0) {
     mergeFunctionCalls(state.functionCalls, result.functionCalls);
+    // Filter out native tools before storing in memory
+    // Native tools are executed by the AI provider and should not be in conversation history
+    const NATIVE_TOOL_NAMES = new Set([
+      'web_search',
+      'file_search',
+      'code_interpreter',
+      'computer_use',
+      'image_generation',
+      'local_shell',
+      'mcp',
+    ]);
+    const functionCallsForHistory = state.functionCalls.filter(
+      (fc) => !NATIVE_TOOL_NAMES.has(fc.function.name)
+    );
     mem.updateResult(
       {
         name: result.name,
         content: result.content,
-        functionCalls: state.functionCalls,
+        functionCalls:
+          functionCallsForHistory.length > 0
+            ? functionCallsForHistory
+            : undefined,
         delta: result.functionCalls?.[0]?.function?.params as string,
         index: result.index,
       },
