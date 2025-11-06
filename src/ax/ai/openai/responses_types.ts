@@ -197,6 +197,7 @@ export interface AxAIOpenAIResponsesRequest<TModel = AxAIOpenAIResponsesModel> {
     | 'computer_call_output.output.image_url'
     | 'reasoning.encrypted_content'
     | 'code_interpreter_call.outputs'
+    | 'web_search_call.action.sources'
   > | null;
   readonly instructions?: string | null; // Maps to system prompt
   readonly max_output_tokens?: number | null;
@@ -806,7 +807,14 @@ export interface AxAIOpenAIResponsesFileSearchToolCall
 export interface AxAIOpenAIResponsesWebSearchToolCall
   extends AxAIOpenAIResponsesToolCallBase {
   type: 'web_search_call';
-  queries: string[];
+  action: {
+    query?: string;
+    sources?: Array<{
+      url: string;
+      title?: string;
+      content?: string;
+    }>;
+  };
 }
 
 export interface AxAIOpenAIResponsesComputerToolCall

@@ -330,13 +330,24 @@ export class AxAIOpenAIResponsesImpl<
         ? [...(functionTools ?? []), ...(this.config.nativeTools ?? [])]
         : undefined;
 
-    // Set include field based on showThoughts option, but override if thinkingTokenBudget is 'none'
-    const includeFields: // | 'file_search_call.results'
-    'message.input_image.image_url'[] =
-      // | 'computer_call_output.output.image_url'
-      // | 'reasoning.encrypted_content'
-      // | 'code_interpreter_call.outputs'
-      [];
+    // Set include field based on showThoughts option and native tools enabled
+    const includeFields: Array<
+      | 'message.input_image.image_url'
+      | 'web_search_call.action.sources'
+      | 'file_search_call.results'
+      | 'computer_call_output.output.image_url'
+      | 'reasoning.encrypted_content'
+      | 'code_interpreter_call.outputs'
+    > = [];
+
+    // Include web search sources if web_search native tool is enabled
+    if (
+      this.config.nativeTools?.some(
+        (tool) => tool.type === 'web_search_preview'
+      )
+    ) {
+      includeFields.push('web_search_call.action.sources');
+    }
 
     const isThinkingModel = isOpenAIResponsesThinkingModel(model as string);
 
@@ -595,7 +606,8 @@ export class AxAIOpenAIResponsesImpl<
               function: {
                 name: 'web_search',
                 params: {
-                  queries: item.queries,
+                  query: item.action?.query,
+                  sources: item.action?.sources,
                 },
               },
             },
@@ -806,7 +818,8 @@ export class AxAIOpenAIResponsesImpl<
                   function: {
                     name: 'web_search',
                     params: {
-                      queries: webSearchItem.queries || [],
+                      query: webSearchItem.action?.query,
+                      sources: webSearchItem.action?.sources,
                     },
                   },
                 },
