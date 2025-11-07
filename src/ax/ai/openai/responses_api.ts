@@ -343,7 +343,7 @@ export class AxAIOpenAIResponsesImpl<
     // Include web search sources if web_search native tool is enabled
     if (
       this.config.nativeTools?.some(
-        (tool) => tool.type === 'web_search_preview'
+        (tool) => tool.type === 'web_search'
       )
     ) {
       includeFields.push('web_search_call.action.sources');
